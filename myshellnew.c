@@ -97,6 +97,11 @@ int execute_command(int count, char **arglist, int background, int redirection, 
         return -1;
     }
 
+    if (background) {
+        arglist[count - 1] = NULL; // Remove the '&' from the arglist
+        count--; // Adjust count to exclude the '&' from the arguments
+    }
+
     pid_first = fork();
     if (pid_first == -1) {
         perror("Fork failed");
