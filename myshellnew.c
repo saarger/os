@@ -17,16 +17,24 @@ void handle_background_process(pid_t pid);
 
 
 int prepare(void) {
-    // Setup SIGCHLD handler to clean up zombie processes
     struct sigaction sa;
+
+    // Clear the signal set
+    sigemptyset(&sa.sa_mask); // Corrected to use sa.sa_mask
+
+    // Set the handler function
     sa.sa_handler = &handle_sigchld;
-    sigemptyset(&sa.sa_flags);
+
+    // No flags or use SA_RESTART to automatically restart system calls
     sa.sa_flags = SA_RESTART | SA_NOCLDSTOP;
-    if (sigaction(SIGCHLD, &sa, 0) == -1) {
+
+    // Apply the signal action settings for SIGCHLD
+    if (sigaction(SIGCHLD, &sa, NULL) == -1) {
         perror("Error - failed to setup SIGCHLD handler");
         return -1;
     }
 
+    // Ignore SIGINT in the parent process, as you have before
     if (signal(SIGINT, SIG_IGN) == SIG_ERR) {
         perror("Error - failed to ignore SIGINT");
         return -1;
