@@ -111,15 +111,12 @@ int execute_standard_command(char **arglist) {
     }
 
     // Parent process
-    int status;
-    if (waitpid(child_pid, &status, 0) == -1) {
-        if (errno != ECHILD && errno != EINTR) {
-            perror("Error - waitpid failed in parent process");
-            return EXEC_FAIL;
-        }
+    if (waitpid(child_pid, NULL, 0) == -1 && errno != ECHILD && errno != EINTR) {
+        // ECHILD and EINTR in the parent shell after waitpid are not considered as errors
+        perror("Error - waitpid failed");
+        return EXEC_FAIL ; // error in the original process, so process_arglist should return 0
     }
-
-    return WIFEXITED(status) ? WEXITSTATUS(status) : -1;
+    return EXEC_SUCCESS; // no error occurs in the parent so for the shell to handle another command, process_arglist should return 1
 }
 
 int execute_background_command(int count, char **arglist) {
@@ -146,7 +143,6 @@ int execute_background_command(int count, char **arglist) {
         }
     }
 
-    // Parent process
     return EXEC_SUCCESS; // Indicate success to the parent process
 }
 
